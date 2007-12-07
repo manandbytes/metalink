@@ -1,18 +1,18 @@
 /*
  * Copyright 2007 Tiberiumlabs
- * 
+ *
  * This file is part of Java Metalink.
- * 
+ *
  * Java Metalink is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Java Metalink is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -21,6 +21,7 @@ package org.metalink.content;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,26 +29,26 @@ import java.util.Map;
  * @author <a href="mailto:paranoid.tiberiumlabs@gmail.com">Paranoid</a>
  */
 public class File {
-    
+
     private static final int hashPart = "MetalinkFile".hashCode();
 
     public File(String name) {
         this.name = name;
     }
-    
+
     private String name;
     private String os;
     private long size;
-    
+
     private ArrayList<String> links = new ArrayList<String>();
     private Map<String, String> hashes = new HashMap<String, String>();
-    
+
     public void addLink(String link, String type, String location, String preference) {
         if (link != null && link.length() > 0) {
             links.add(link);
         }
     }
-    
+
     public void addHash(String type, String hash) {
         if (type != null && type.length() > 0 && hash != null && hash.length() > 0) {
             hashes.put(type, hash);
@@ -105,7 +106,15 @@ public class File {
     public void setSize(long size) {
         this.size = size;
     }
-    
+
+    public List<? extends String> getLinks() {
+        return links;
+    }
+
+    public String getHash(String type) {
+        return hashes.get(type);
+    }
+
     // </editor-fold>
 
 }

@@ -17,16 +17,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.metalink.parser;
+package org.metalink.content;
 
 /**
  *
  * @author <a href="mailto:paranoid.tiberiumlabs@gmail.com">Paranoid</a>
  */
-public class MetalinkParsingException extends Exception {
+public class Url {
 
-    public MetalinkParsingException(Throwable cause) {
-        super(cause.getMessage(), cause);
+    private String url;
+    private String type;
+    private String location;
+    private int preference;
+
+    public Url(String url, String type, String location, int preference) {
+        this.url = url;
+        this.type = type;
+        this.location = location;
+        this.preference = preference;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public int getPreference() {
+        return preference;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getUrl() {
+        return url;
     }
 
 }

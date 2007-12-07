@@ -1,18 +1,18 @@
 /*
  * Copyright 2007 Tiberiumlabs
- * 
+ *
  * This file is part of Java Metalink.
- * 
+ *
  * Java Metalink is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Java Metalink is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -34,7 +34,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * @author <a href="mailto:paranoid.tiberiumlabs@gmail.com">Paranoid</a>
  */
 public class MetalinkHandler extends DefaultHandler {
-    
+
     // <editor-fold defaultstate="collapsed" desc=" metalink result bean ">
     private Metalink metalink;
     public Metalink getMetalink() {
@@ -45,7 +45,7 @@ public class MetalinkHandler extends DefaultHandler {
     // <editor-fold defaultstate="collapsed" desc=" xml parsing ">
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-        
+
         /*
          * first we process metalink information, everything is parameter
          * 2. publisher. have tags name and url
@@ -53,7 +53,7 @@ public class MetalinkHandler extends DefaultHandler {
          * 4. files
          * 5. one file, including os, size and other.
          */
-        
+
         this.needCharacters = true;
         if ("metalink".equals(qName)) {
             processMetalinkParams(attributes);
@@ -128,9 +128,9 @@ public class MetalinkHandler extends DefaultHandler {
     public void endDocument() throws SAXException {
         this.metalink = new Metalink(metalinkParams, publisher, description, tags, identity, version, files);
     }
-    
+
     // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc=" current processing ">
     private Map<String, String> metalinkParams = new HashMap<String, String>();
     private String characters;
@@ -147,10 +147,10 @@ public class MetalinkHandler extends DefaultHandler {
             for (int i = 0; i < attributes.getLength(); i++) {
                 metalinkParams.put(attributes.getQName(i), attributes.getValue(i));
             }
-        }   
+        }
     }
     // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc=" processed data ">
     private Publisher publisher;
     private String description;
