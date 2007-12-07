@@ -19,6 +19,10 @@
 
 package org.metalink.content;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  *
  * @author <a href="mailto:paranoid.tiberiumlabs@gmail.com">Paranoid</a>
@@ -26,10 +30,31 @@ package org.metalink.content;
 public class File {
     
     private static final int hashPart = "MetalinkFile".hashCode();
+
+    public File(String name) {
+        this.name = name;
+    }
     
     private String name;
     private String os;
+    private long size;
+    
+    private ArrayList<String> links = new ArrayList<String>();
+    private Map<String, String> hashes = new HashMap<String, String>();
+    
+    public void addLink(String link, String type, String location, String preference) {
+        if (link != null && link.length() > 0) {
+            links.add(link);
+        }
+    }
+    
+    public void addHash(String type, String hash) {
+        if (type != null && type.length() > 0 && hash != null && hash.length() > 0) {
+            hashes.put(type, hash);
+        }
+    }
 
+    // <editor-fold defaultstate="collapsed" desc=" bean object implementation ">
     @Override
     public String toString() {
         return getClass().getName() + '[' + name + ']';
@@ -60,5 +85,27 @@ public class File {
         }
         return true;
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getOs() {
+        return os;
+    }
+
+    public void setOs(String os) {
+        this.os = os;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
+    }
+    
+    // </editor-fold>
 
 }

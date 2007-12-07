@@ -19,11 +19,14 @@
 
 package org.metalink.parser;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import org.metalink.Metalink;
+import org.metalink.content.File;
+import org.metalink.content.Publisher;
 import org.xml.sax.Attributes;
-import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
@@ -32,99 +35,129 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class MetalinkHandler extends DefaultHandler {
     
+    // <editor-fold defaultstate="collapsed" desc=" metalink result bean ">
     private Metalink metalink;
-
     public Metalink getMetalink() {
         return metalink;
     }
+    // </editor-fold>
 
+    // <editor-fold defaultstate="collapsed" desc=" xml parsing ">
     @Override
-    public void startDocument() throws SAXException {
-        metalink = new Metalink();
+    public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+        
+        /*
+         * first we process metalink information, everything is parameter
+         * 2. publisher. have tags name and url
+         * 3. some more metatags.
+         * 4. files
+         * 5. one file, including os, size and other.
+         */
+        
+        this.needCharacters = true;
+        if ("metalink".equals(qName)) {
+            processMetalinkParams(attributes);
+        }
+        else if ("publisher".equals(qName)) {
+            this.processingPublisher = true;
+        }
+        else if ("files".equals(qName)) {
+            this.processingFiles = true;
+        }
+        else if ("file".equals(qName)) {
+            this.processingFile = true;
+            this.file = new File(attributes.getValue("name"));
+        }
+        this.attributes = attributes;
     }
-    
-    
-    // <editor-fold defaultstate="collapsed" desc=" other methods ">
+
     @Override
     public void characters(char[] ch, int start, int length) throws SAXException {
-        System.out.println("characters: " + String.valueOf(ch, start, length));
-    }
-
-    @Override
-    public void endDocument() throws SAXException {
-        System.out.println("endDocument");
+        if (needCharacters) {
+            this.characters = String.valueOf(ch, start, length).trim();
+        }
     }
 
     @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
-        System.out.println("endElement");
-    }
-
-    @Override
-    public void endPrefixMapping(String prefix) throws SAXException {
-        System.out.println("endPrefixMapping");
-    }
-
-    @Override
-    public void error(SAXParseException e) throws SAXException {
-        System.out.println("error");
-    }
-
-    @Override
-    public void fatalError(SAXParseException e) throws SAXException {
-        System.out.println("fatalError");
-    }
-
-    @Override
-    public void ignorableWhitespace(char[] ch, int start, int length) throws SAXException {
-        System.out.println("ignorableWhitespace: " + String.valueOf(ch, start, length));
-    }
-
-    @Override
-    public void notationDecl(String name, String publicId, String systemId) throws SAXException {
-        System.out.println("notationDecl");
-    }
-
-    @Override
-    public void processingInstruction(String target, String data) throws SAXException {
-        System.out.println("processingInstruction: target=" + target + ";data=" + data);
-    }
-
-    @Override
-    public void setDocumentLocator(Locator locator) {
-        super.setDocumentLocator(locator);
-    }
-
-    @Override
-    public void skippedEntity(String name) throws SAXException {
-        System.out.println("skippedEntity: " + name);
-    }
-
-
-    @Override
-    public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-        //System.out.println("startElement: uri=" + uri + ";localName=" + localName + ";qName=" + qName);
-        System.out.println("startElement, qName=" + qName);
-        System.out.print("Attributes:");
-        for (int i = 0; i < attributes.getLength(); i++) {
-            if (attributes.getValue(i) != null) {
-                System.out.print(' ' + i + '=' + attributes.getValue(i));
-            }
+        this.needCharacters = false;
+        if ("publisher".equals(qName)) {
+            this.processingPublisher = false;
+            this.publisher = new Publisher(publisherName, publisherUrl);
         }
-        System.out.println();
-
+        else if ("name".equals(qName) && processingPublisher) {
+            this.publisherName = characters;
+        }
+        else if ("url".equals(qName) && processingPublisher) {
+            this.publisherUrl = characters;
+        }
+        else if ("description".equals(qName)) {
+            this.description = characters;
+        }
+        else if ("tags".equals(qName)) {
+            this.tags = characters;
+        }
+        else if("identity".equals(qName)) {
+            this.identity = characters;
+        }
+        else if ("version".equals(qName)) {
+            this.version = characters;
+        }
+        else if ("files".equals(qName)) {
+            this.processingFiles = false;
+        }
+        else if ("file".equals(qName) && processingFiles && processingFile) {
+            this.processingFile = false;
+            files.add(file);
+        }
+        else if ("os".equals(qName) && processingFile) {
+            this.file.setOs(characters);
+        }
+        else if ("size".equals(qName) && processingFile) {
+            this.file.setSize(Long.parseLong(characters));
+        }
+        else if ("hash".equals(qName) && processingFile) {
+            file.addHash(attributes.getValue("type"), characters);
+        }
+        else if ("url".equals(qName) && processingFile) {
+            file.addLink(characters, attributes.getValue("type"), attributes.getValue("location"), attributes.getValue("preference"));
+        }
     }
 
     @Override
-    public void startPrefixMapping(String prefix, String uri) throws SAXException {
-        System.out.println("startPrefixMapping: prefix=" + prefix + ";uri=" + uri);
+    public void endDocument() throws SAXException {
+        this.metalink = new Metalink(metalinkParams, publisher, description, tags, identity, version, files);
     }
-
-    @Override
-    public void unparsedEntityDecl(String name, String publicId, String systemId, String notationName) throws SAXException {
-        System.out.println("unparsedEntityDecl: name=" + name);
+    
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" current processing ">
+    private Map<String, String> metalinkParams = new HashMap<String, String>();
+    private String characters;
+    private boolean needCharacters = false;
+    private boolean processingPublisher = false;
+    private boolean processingFiles = false;
+    private boolean processingFile = false;
+    private Attributes attributes;
+    private String publisherName;
+    private String publisherUrl;
+    private File file;
+    private void processMetalinkParams(Attributes attributes) {
+        if (attributes != null && attributes.getLength() > 0) {
+            for (int i = 0; i < attributes.getLength(); i++) {
+                metalinkParams.put(attributes.getQName(i), attributes.getValue(i));
+            }
+        }   
     }
-
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" processed data ">
+    private Publisher publisher;
+    private String description;
+    private String tags;
+    private String identity;
+    private String version;
+    private ArrayList<File> files = new ArrayList<File>();
     // </editor-fold>
 
 }
