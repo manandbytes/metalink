@@ -20,9 +20,13 @@
 package org.metalink.content;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -30,6 +34,7 @@ import java.util.Map;
  */
 public class File {
 
+    private static final Comparator<Url> PREFERENCE_COMPARATOR = new PreferenceComparator();
     private static final int hashPart = "MetalinkFile".hashCode();
 
     public File(String name) {
@@ -39,20 +44,31 @@ public class File {
     private String name;
     private String os;
     private long size;
+    private Pieces pieces;
 
-    private ArrayList<String> links = new ArrayList<String>();
+    private ArrayList<Url> urls = new ArrayList<Url>();
     private Map<String, String> hashes = new HashMap<String, String>();
 
-    public void addLink(String link, String type, String location, String preference) {
-        if (link != null && link.length() > 0) {
-            links.add(link);
-        }
+    public void addUrl(String link, String type, String location, String preference) {
+        urls.add(new Url(link, type, location, Integer.valueOf(preference)));
     }
 
     public void addHash(String type, String hash) {
         if (type != null && type.length() > 0 && hash != null && hash.length() > 0) {
             hashes.put(type, hash);
         }
+    }
+
+    public void setPieces(Pieces pieces) {
+        this.pieces = pieces;
+    }
+
+    public Pieces getPieces() {
+        return pieces;
+    }
+
+    public Map<String, String> getHashes() {
+        return hashes;
     }
 
     // <editor-fold defaultstate="collapsed" desc=" bean object implementation ">
@@ -107,14 +123,63 @@ public class File {
         this.size = size;
     }
 
-    public List<? extends String> getLinks() {
-        return links;
+    public List<? extends Url> getUrls() {
+        return urls;
     }
 
     public String getHash(String type) {
         return hashes.get(type);
     }
 
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc=" different comparators and sorted getters ">
+    private static class PreferenceComparator implements Comparator<Url> {
+
+        public int compare(Url o1, Url o2) {
+            return o1.getPreference() - o2.getPreference();
+        }
+
+    }
+
+    /**
+     * Method to get all types available for this file.
+     * @return new String[] with all available types.
+     */
+    public String[] getTypes() {
+        if (urls != null && !urls.isEmpty()) {
+            HashSet<String> typesSet = new HashSet<String>();
+            for (int i = 0; i < urls.size(); i++) {
+                typesSet.add(urls.get(i).getType());
+            }
+            return typesSet.toArray(new String[typesSet.size()]);
+        }
+        return null;
+    }
+
+    /**
+     * Method to get all locations available for this file.
+     * @return new String[] with all available locations.
+     */
+    public String[] getLocations() {
+        if (urls != null && !urls.isEmpty()) {
+            HashSet<String> locationSets = new HashSet<String>();
+            for (int i = 0; i < urls.size(); i++) {
+                locationSets.add(urls.get(i).getLocation());
+            }
+            return locationSets.toArray(new String[locationSets.size()]);
+        }
+        return null;
+    }
+    
+    public List<Url> getUrlSortedByPreference() {
+        if (urls != null && !urls.isEmpty()) {
+            ArrayList<Url> sortedList = new ArrayList<Url>(urls);
+            Collections.sort(sortedList, PREFERENCE_COMPARATOR);
+            return sortedList;
+        }
+        return null;
+    }
     // </editor-fold>
 
 }

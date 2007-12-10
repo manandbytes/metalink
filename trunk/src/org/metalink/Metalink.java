@@ -51,7 +51,7 @@ public class Metalink {
         this.files = files;
     }
 
-    public List<? extends File> getAllFiles() {
+    public List<? extends File> getFiles() {
         return files;
     }
 
@@ -73,6 +73,10 @@ public class Metalink {
 
     public String getVersion() {
         return version;
+    }
+
+    public Map<String, String> getParams() {
+        return params;
     }
 
     @Override

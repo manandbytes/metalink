@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.metalink.Metalink;
 import org.metalink.content.File;
+import org.metalink.content.Pieces;
 import org.metalink.content.Publisher;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -55,6 +56,7 @@ public class MetalinkHandler extends DefaultHandler {
          */
 
         this.needCharacters = true;
+        this.attributes = attributes;
         if ("metalink".equals(qName)) {
             processMetalinkParams(attributes);
         }
@@ -68,7 +70,15 @@ public class MetalinkHandler extends DefaultHandler {
             this.processingFile = true;
             this.file = new File(attributes.getValue("name"));
         }
-        this.attributes = attributes;
+        else if ("pieces".equals(qName)) {
+            this.piecesProcessing = true;
+            this.pieces = new Pieces(attributes.getValue("type"), Integer.parseInt(attributes.getValue("length")));
+        }
+        else if ("url".equals(qName)) {
+            this.type = attributes.getValue("type");
+            this.location = attributes.getValue("location");
+            this.preference = attributes.getValue("preference");
+        }
     }
 
     @Override
@@ -85,10 +95,10 @@ public class MetalinkHandler extends DefaultHandler {
             this.processingPublisher = false;
             this.publisher = new Publisher(publisherName, publisherUrl);
         }
-        else if ("name".equals(qName) && processingPublisher) {
+        else if (processingPublisher && "name".equals(qName)) {
             this.publisherName = characters;
         }
-        else if ("url".equals(qName) && processingPublisher) {
+        else if (processingPublisher && "url".equals(qName)) {
             this.publisherUrl = characters;
         }
         else if ("description".equals(qName)) {
@@ -106,21 +116,28 @@ public class MetalinkHandler extends DefaultHandler {
         else if ("files".equals(qName)) {
             this.processingFiles = false;
         }
-        else if ("file".equals(qName) && processingFiles && processingFile) {
+        else if (processingFiles && processingFile && "file".equals(qName)) {
             this.processingFile = false;
-            files.add(file);
+            this.files.add(file);
         }
-        else if ("os".equals(qName) && processingFile) {
+        else if (processingFile && "os".equals(qName)) {
             this.file.setOs(characters);
         }
-        else if ("size".equals(qName) && processingFile) {
+        else if (processingFile && "pieces".equals(qName)) {
+            this.piecesProcessing = false;
+            this.file.setPieces(pieces);
+        }
+        else if (processingFile && "size".equals(qName)) {
             this.file.setSize(Long.parseLong(characters));
         }
-        else if ("hash".equals(qName) && processingFile) {
-            file.addHash(attributes.getValue("type"), characters);
+        else if (processingFile && !piecesProcessing && "hash".equals(qName)) {
+            this.file.addHash(attributes.getValue("type"), characters);
         }
-        else if ("url".equals(qName) && processingFile) {
-            file.addLink(characters, attributes.getValue("type"), attributes.getValue("location"), attributes.getValue("preference"));
+        else if (processingFile && piecesProcessing && "hash".equals(qName)) {
+            this.pieces.addHash(characters);
+        }
+        else if (processingFile && "url".equals(qName)) {
+            this.file.addUrl(characters, type, location, preference);
         }
     }
 
@@ -138,10 +155,15 @@ public class MetalinkHandler extends DefaultHandler {
     private boolean processingPublisher = false;
     private boolean processingFiles = false;
     private boolean processingFile = false;
+    private boolean piecesProcessing = false;
     private Attributes attributes;
     private String publisherName;
     private String publisherUrl;
+    private Pieces pieces;
     private File file;
+    private String type;
+    private String location;
+    private String preference;
     private void processMetalinkParams(Attributes attributes) {
         if (attributes != null && attributes.getLength() > 0) {
             for (int i = 0; i < attributes.getLength(); i++) {

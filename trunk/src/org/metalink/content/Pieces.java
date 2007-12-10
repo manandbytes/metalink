@@ -19,38 +19,43 @@
 
 package org.metalink.content;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author <a href="mailto:paranoid.tiberiumlabs@gmail.com">Paranoid</a>
  */
-public class Url {
+public class Pieces {
 
-    private String url;
-    private String type;
-    private String location;
-    private int preference = Integer.MAX_VALUE;
+    private final String  type;
+    private final int length;
+    private final List<String> piecesList;
 
-    public Url(String url, String type, String location, int preference) {
-        this.url = url;
+    public Pieces(String type, int length) {
         this.type = type;
-        this.location = location;
-        this.preference = preference;
+        this.length = length;
+        this.piecesList = new ArrayList<String>(length);
     }
 
-    public String getLocation() {
-        return location;
+    public int getLength() {
+        return length;
     }
 
-    public int getPreference() {
-        return preference;
+    public void addHash(String hash) {
+        piecesList.add(hash);
+    }
+
+    public String getHash(int index) {
+        return piecesList.get(index);
     }
 
     public String getType() {
         return type;
     }
 
-    public String getUrl() {
-        return url;
+    public List<? extends String> getPiecesList() {
+        return piecesList;
     }
 
 }
