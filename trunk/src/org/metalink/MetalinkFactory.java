@@ -93,13 +93,7 @@ public class MetalinkFactory {
                 messageDigest.update(buffer, 0, read);
             }
             byte[] result = messageDigest.digest();
-            char[] hexChar = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
-            StringBuilder sb = new StringBuilder(result.length * 2);
-            for (int i = 0; i < result.length; i++) {
-                sb.append(hexChar[(result[i] & 0xf0) >>> 4]);
-                sb.append(hexChar[result[i] & 0x0f]);
-            }
-            return hash.equalsIgnoreCase(sb.toString());
+            return hash.equalsIgnoreCase(byteArrayToHexString(result));
         } catch (Exception ex) {
         }
         return false;
@@ -187,6 +181,17 @@ public class MetalinkFactory {
         out.append("</metalink>").append(fs);
 
         //out.append("").append("").append("").append(fs);
+    }
+    
+    private static final char[] hexChar = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+    private static String byteArrayToHexString(byte[] b) {
+        StringBuilder sb = new StringBuilder(b.length * 2);
+        for (int i = 0; i < b.length; i++) {
+            sb.append(hexChar[(b[i] & 0xf0) >>> 4]);
+            sb.append(hexChar[b[i] & 0x0f]);
+        }
+        return sb.toString();
     }
 
 }
