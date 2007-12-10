@@ -76,7 +76,7 @@ public class MetalinkFactory {
      *
      * @param file file representation from metalink
      * @param in stream to read real file content
-     * @return {@Code true} if and only if hashes are equal.
+     * @return <code>true</code> if and only if hashes are equal.
      */
     public static boolean verify(File file, InputStream in) {
         try {
