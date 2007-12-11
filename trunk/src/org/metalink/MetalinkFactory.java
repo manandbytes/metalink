@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import static java.util.Map.Entry;
@@ -37,11 +38,13 @@ import org.metalink.parser.MetalinkParsingException;
 import org.xml.sax.InputSource;
 
 /**
+ * Optional: Configurable options/settings (or detection of): language, location, operating system, etc.
+ * Optional: For <verification>: Verify MD5, SHA-1, SHA-256 checksums. (Optional: OpenPGP). 
  *
  * @author <a href="mailto:paranoid.tiberiumlabs@gmail.com">Paranoid</a>
  */
 public class MetalinkFactory {
-
+    
     private static final SAXParserFactory PARSER_FACTORY = SAXParserFactory.newInstance();
 
     public static Metalink createMetalink(String metalinkContent) throws MetalinkParsingException {
@@ -192,6 +195,34 @@ public class MetalinkFactory {
             sb.append(hexChar[b[i] & 0x0f]);
         }
         return sb.toString();
+    }
+    
+    private static Preferences preferences = new Preferences();
+
+    public static Preferences getPreferences() {
+        return preferences;
+    }
+    
+    public static class Preferences {
+        
+        public static final String TYPE_HTTP = "http";
+        public static final String TYPE_FTP = "ftp";
+        public static final String TYPE_MAGNET = "magnet";
+        public static final String TYPE_ED2K = "ed2k";
+        
+        private String preferedOs;
+        private List<String> locations = new ArrayList<String>();
+        private List<String> types = new ArrayList<String>();
+
+        public String getPreferedOs() {
+            if (preferedOs != null) {
+                return preferedOs;
+            }
+            return System.getProperty("os.name");
+        }
+        
+        
+        
     }
 
 }
