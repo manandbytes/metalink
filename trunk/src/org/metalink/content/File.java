@@ -180,6 +180,31 @@ public class File {
         }
         return null;
     }
+    
+    public List<Url> getUrlsForLocation(String location) {
+        return getUrlsForLocation(location, false);
+    }
+    
+    public List<Url> getUrlsForLocation(String location, boolean sortByPreference) {
+        if (location == null || location.length() < 1) {
+            throw new IllegalArgumentException("Location cannot be empty!");
+        }
+        if (urls != null && !urls.isEmpty()) {
+            ArrayList<Url> links = new ArrayList<Url>();
+            for (int i = 0; i < urls.size(); i++) {
+                Url url = urls.get(i);
+                if (location.equals(url.getLocation())) {
+                    links.add(url);
+                }
+            }
+            if (sortByPreference) {
+                Collections.sort(links, PREFERENCE_COMPARATOR);
+            }
+            return links;
+        }
+        return null;
+    }
+    
     // </editor-fold>
 
 }

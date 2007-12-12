@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.security.MessageDigest;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import static java.util.Map.Entry;
@@ -33,18 +32,19 @@ import org.metalink.content.File;
 import org.metalink.content.Pieces;
 import org.metalink.content.Publisher;
 import org.metalink.content.Url;
+import org.metalink.parser.DynamicChecker;
 import org.metalink.parser.MetalinkHandler;
 import org.metalink.parser.MetalinkParsingException;
 import org.xml.sax.InputSource;
 
 /**
  * Optional: Configurable options/settings (or detection of): language, location, operating system, etc.
- * Optional: For <verification>: Verify MD5, SHA-1, SHA-256 checksums. (Optional: OpenPGP). 
+ * Optional: For <verification>: Verify MD5, SHA-1, SHA-256 checksums. (Optional: OpenPGP).
  *
  * @author <a href="mailto:paranoid.tiberiumlabs@gmail.com">Paranoid</a>
  */
 public class MetalinkFactory {
-    
+
     private static final SAXParserFactory PARSER_FACTORY = SAXParserFactory.newInstance();
 
     public static Metalink createMetalink(String metalinkContent) throws MetalinkParsingException {
@@ -71,11 +71,29 @@ public class MetalinkFactory {
             throw new MetalinkParsingException(ex);
         }
     }
+    
+    /**
+     * Method to check is specified Metalink file is dynamic
+     * @param source
+     * @return
+     */
+    public static boolean isMetalinkDynamic(InputSource source) {
+        try {
+            PARSER_FACTORY.newSAXParser().parse(source, new DynamicChecker());
+        } catch (RuntimeException rex) {
+            if (DynamicChecker.TYPE_IS_DYNAMIC.equals(rex.getMessage())) {
+                return true;
+            }
+        } catch (Exception ignore) {
+        }
+        return false;
+    }
 
     /**
      * Method to veriby integrity of full file.
      * Note: for better performance try to use buffered streams.
-     * Note: supports only sha1 and md5 algorithms.
+     * Note: it gets algorithms in such order: sha1, md5, sha-256.
+     * WARNING: do not forget to close stream by yourself!
      *
      * @param file file representation from metalink
      * @param in stream to read real file content
@@ -88,6 +106,13 @@ public class MetalinkFactory {
             if (hash == null || hash.length() == 0) {
                 algorithm = "md5";
                 hash = file.getHash(algorithm);
+            }
+            if (hash == null || hash.length() == 0) {
+                algorithm = "sha-256";
+                hash = file.getHash(algorithm);
+            }
+            if (hash == null || hash.length() == 0) {
+                throw new RuntimeException("File have no hashes!");
             }
             MessageDigest messageDigest = MessageDigest.getInstance(algorithm);
             byte[] buffer = new byte[4096];
@@ -185,7 +210,7 @@ public class MetalinkFactory {
 
         //out.append("").append("").append("").append(fs);
     }
-    
+
     private static final char[] hexChar = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
     private static String byteArrayToHexString(byte[] b) {
@@ -195,34 +220,6 @@ public class MetalinkFactory {
             sb.append(hexChar[b[i] & 0x0f]);
         }
         return sb.toString();
-    }
-    
-    private static Preferences preferences = new Preferences();
-
-    public static Preferences getPreferences() {
-        return preferences;
-    }
-    
-    public static class Preferences {
-        
-        public static final String TYPE_HTTP = "http";
-        public static final String TYPE_FTP = "ftp";
-        public static final String TYPE_MAGNET = "magnet";
-        public static final String TYPE_ED2K = "ed2k";
-        
-        private String preferedOs;
-        private List<String> locations = new ArrayList<String>();
-        private List<String> types = new ArrayList<String>();
-
-        public String getPreferedOs() {
-            if (preferedOs != null) {
-                return preferedOs;
-            }
-            return System.getProperty("os.name");
-        }
-        
-        
-        
     }
 
 }
