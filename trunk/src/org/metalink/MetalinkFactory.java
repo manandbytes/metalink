@@ -38,8 +38,6 @@ import org.metalink.parser.MetalinkParsingException;
 import org.xml.sax.InputSource;
 
 /**
- * Optional: Configurable options/settings (or detection of): language, location, operating system, etc.
- * Optional: For <verification>: Verify MD5, SHA-1, SHA-256 checksums. (Optional: OpenPGP).
  *
  * @author <a href="mailto:paranoid.tiberiumlabs@gmail.com">Paranoid</a>
  */
@@ -93,7 +91,7 @@ public class MetalinkFactory {
      * Method to veriby integrity of full file.
      * Note: for better performance try to use buffered streams.
      * Note: it gets algorithms in such order: sha1, md5, sha-256.
-     * WARNING: do not forget to close stream by yourself!
+     * Note: this method closes stream itself.
      *
      * @param file file representation from metalink
      * @param in stream to read real file content
@@ -120,9 +118,10 @@ public class MetalinkFactory {
             while ((read = in.read(buffer)) >= 0) {
                 messageDigest.update(buffer, 0, read);
             }
+            in.close();
             byte[] result = messageDigest.digest();
             return hash.equalsIgnoreCase(byteArrayToHexString(result));
-        } catch (Exception ex) {
+        } catch (Exception ignore) {
         }
         return false;
     }
