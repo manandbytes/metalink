@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Collection of util methods to work with metalink objects.
  *
  * @author Aekold Helbrass <Helbrass@gmail.com>
  */
@@ -46,12 +47,14 @@ public class MetalinkUtils {
         return result;
     }
 
-    public List<MetalinkUrl> resourcesOfType(List<MetalinkUrl> resources, String type) {
+    public List<MetalinkUrl> resourcesOfType(List<MetalinkUrl> resources, String... types) {
         if (resources == null || resources.isEmpty()) {
             return null;
         }
-        HashSet<String> types = new HashSet<String>();
-        types.add(type);
+        HashSet<String> typesSet = new HashSet<String>();
+        for (int i = 0; i < types.length; i++) {
+            typesSet.add(types[i]);
+        }
         return resourcesOfType(resources, types);
     }
 
@@ -80,8 +83,17 @@ public class MetalinkUtils {
         return true;
     }
 
+    /**
+     * Char array required for byte-to-hexstring operation
+     */
     private static final char[] hexChar = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
+    /**
+     * Translate byte array to hex string. This operation required because of MessageDigest returns byte array, but
+     * hashes in metalink file are stored as strings.
+     * @param b byte array with hashsum.
+     * @return hex-string representation of byte array.
+     */
     private static String byteArrayToHexString(byte[] b) {
         StringBuilder sb = new StringBuilder(b.length * 2);
         for (int i = 0; i < b.length; i++) {
